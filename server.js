@@ -10,7 +10,8 @@ const nodemailer = require('nodemailer');
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-    maxHttpBufferSize: 5e7 // 50МБ
+    maxHttpBufferSize: 1e8, // Увеличил до 100МБ для надежности
+    cors: { origin: "*" }   // Render иногда блокирует сокеты без этой строчки
 });
 
 // --- Настройка почты ---
