@@ -520,9 +520,6 @@
     sendBtn.onclick = send;
     msgInput.onkeypress = (e) => { if(e.key === 'Enter') send(); };
 
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('sw.js').catch(err => console.log(err));
-    }
 </script>
 </body>
 </html>
