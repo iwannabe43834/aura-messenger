@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aura — Добро пожаловать</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <div class="bg-animation">
+        <div class="shape shape-1"></div>
+        <div class="shape shape-2"></div>
+    </div>
+
+    <div id="toast-container" class="toast-container"></div>
+
+    <div class="auth-container animate__fadeIn">
+        <div class="auth-icon">✨</div>
+        
+        <h2 id="auth-title">Вход в Aura</h2>
+        <p id="auth-subtitle">Твой уютный уголок для общения</p>
+        
+        <div class="input-group">
+            <div class="input-wrapper reg-field hidden">
+                <i class="fas fa-user"></i>
+                <input type="text" id="name" placeholder="Ваше Имя" autocomplete="off">
+            </div>
+
+            <div class="input-wrapper">
+                <i class="fas fa-at"></i>
+                <input type="text" id="username" placeholder="Username" autocomplete="off">
+            </div>
+
+            <div class="input-wrapper">
+                <i class="fas fa-lock"></i>
+                <input type="password" id="password" placeholder="Пароль">
+            </div>
+        </div>
+        
+        <button id="auth-btn">Войти</button>
+        
+        <div class="toggle-link" id="toggle-auth">Нет аккаунта? Зарегистрироваться</div>
+    </div>
+
+    <script>
+        const authBtn = document.getElementById('auth-btn');
+        const toggleLink = document.getElementById('toggle-auth');
+        const regFieldWrapper = document.querySelector('.reg-field');
+        const authTitle = document.getElementById('auth-title');
+        const authSubtitle = document.getElementById('auth-subtitle');
+        
+        let isLogin = true;
+
+        // Функция показа уведомления (Toast)
+        function showToast(message, type = 'error') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
+            
+            toast.innerHTML = `
+                <i class="fas ${icon}"></i>
+                <span>${message}</span>
+            `;
+            
+            container.appendChild(toast);
+
+            // Удаление через 3.5 секунды
+            setTimeout(() => {
+                toast.classList.add('fade-out');
+                setTimeout(() => toast.remove(), 400);
+            }, 3500);
+        }
+
+        // Применение темы
+        const savedTheme = localStorage.getItem('aura-theme');
+        if (savedTheme === 'light') {
+            document.documentElement.setAttribute('data-theme', 'light');
+        }
+
+        // Переключение режимов
+        toggleLink.onclick = () => {
+            isLogin = !isLogin;
+            [authTitle, authSubtitle, authBtn].forEach(el => el.style.opacity = '0');
+            
+            setTimeout(() => {
+                authTitle.innerText = isLogin ? "Вход в Aura" : "Регистрация";
+                authSubtitle.innerText = isLogin ? "Твой уютный уголок для общения" : "Создай аккаунт, чтобы начать";
+                authBtn.innerText = isLogin ? "Войти" : "Создать аккаунт";
+                toggleLink.innerText = isLogin ? "Нет аккаунта? Зарегистрироваться" : "Уже есть аккаунт? Войти";
+                
+                [authTitle, authSubtitle, authBtn].forEach(el => el.style.opacity = '1');
+
+                if (isLogin) {
+                    regFieldWrapper.classList.add('hidden');
+                } else {
+                    regFieldWrapper.classList.remove('hidden');
+                    regFieldWrapper.style.animation = 'fadeIn 0.4s ease-out';
+                }
+            }, 200);
+        };
+
+        // Логика кнопки
+        authBtn.onclick = async () => {
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            const name = document.getElementById('name').value.trim();
+
+            if (!username || !password || (!isLogin && !name)) {
+                return showToast("Заполни все поля, дружище!");
+            }
+
+            try {
+                authBtn.disabled = true;
+                const originalText = authBtn.innerText;
+                authBtn.innerText = "Загрузка...";
+
+                const url = isLogin ? '/login' : '/register';
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify({ 
+                        username: username.replace('@', ''), 
+                        password, 
+                        name: isLogin ? "" : name 
+                    })
+                });
+
+                const result = await res.json();
+                if (res.ok) {
+                    window.location.href = '/'; 
+                } else {
+                    showToast(result.error || "Ошибка доступа");
+                    authBtn.disabled = false;
+                    authBtn.innerText = originalText;
+                }
+            } catch (err) {
+                showToast("Ошибка соединения с сервером");
+                authBtn.disabled = false;
+                authBtn.innerText = isLogin ? "Войти" : "Создать аккаунт";
+            }
+        };
+    </script>
+
+    <style>
+        /* СТИЛИ УВЕДОМЛЕНИЙ */
+        .toast-container {
+            position: fixed;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            pointer-events: none;
+        }
+
+        .toast {
+            min-width: 280px;
+            padding: 14px 22px;
+            background: rgba(255, 255, 255, 0.08);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            border-radius: 16px;
+            color: white;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
+            animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+        }
+
+        .toast i { font-size: 1.1rem; color: #ff4757; }
+        .toast.success i { color: #00ff88; }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateY(-30px) scale(0.9); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+
+        .toast.fade-out {
+            animation: toastOut 0.4s ease-in forwards;
+        }
+
+        @keyframes toastOut {
+            to { opacity: 0; transform: translateY(-20px) scale(0.95); }
+        }
+
+        /* ОСНОВНОЙ ДИЗАЙН */
+        .auth-icon {
+            font-size: 3.5rem; 
+            margin-bottom: 10px; 
+            filter: drop-shadow(0 0 15px var(--primary));
+            animation: pulse 2s infinite ease-in-out;
+            text-align: center;
+        }
+
+        #auth-title { transition: opacity 0.2s; text-align: center; margin-bottom: 5px; }
+        #auth-subtitle { 
+            color: var(--text-dim); 
+            margin-bottom: 30px; 
+            font-size: 0.95rem; 
+            transition: opacity 0.2s; 
+            text-align: center; 
+        }
+
+        .input-group { 
+            display: flex; 
+            flex-direction: column; 
+            gap: 15px; 
+            margin-bottom: 25px; 
+        }
+
+        .input-wrapper {
+            position: relative;
+            display: flex;
+            align-items: center;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--glass-border);
+            border-radius: 14px;
+            padding: 0 15px;
+            transition: all 0.3s ease;
+        }
+
+        .input-wrapper:focus-within {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: var(--primary);
+            box-shadow: 0 0 15px rgba(125, 103, 255, 0.2);
+        }
+
+        .input-wrapper i {
+            color: var(--primary);
+            font-size: 1rem;
+            width: 20px;
+            text-align: center;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            background: transparent !important;
+            border: none !important;
+            padding: 14px 10px !important;
+            color: white !important;
+            outline: none !important;
+            font-size: 0.95rem;
+        }
+
+        #auth-btn {
+            width: 100%;
+            padding: 15px;
+            border-radius: 14px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        #auth-btn:hover:not(:disabled) {
+            background: var(--primary-hover);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(125, 103, 255, 0.3);
+        }
+
+        #auth-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .toggle-link {
+            margin-top: 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-dim);
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+
+        .toggle-link:hover { color: var(--primary); }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .hidden { display: none !important; }
+    </style>
+</body>
+</html>
