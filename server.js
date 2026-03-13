@@ -5,54 +5,74 @@ const fs = require('fs');
 const bcrypt = require('bcryptjs');
 const session = require('express-session');
 const path = require('path');
+const nodemailer = require('nodemailer');
 
 const app = express();
 const server = http.createServer(app);
 const io = new Server(server, {
-    maxHttpBufferSize: 1e7 // Увеличение буфера для Socket.IO (10MB)
+    maxHttpBufferSize: 5e7 // 50МБ
 });
 
-// --- Настройка лимитов для загрузки больших фото (Base64) ---
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ limit: '10mb', extended: true }));
+// --- Настройка почты ---
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: 'auramessengercode@gmail.com', 
+        pass: 'zbhr wprc tqzl fhyu' 
+    }
+});
 
+const recoveryCodes = {};
+
+// --- Настройки сервера ---
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ limit: '50mb', extended: true }));
 app.use(express.static(__dirname));
+
 app.use(session({
-    secret: 'aura-secret-key',
-    resave: false,
-    saveUninitialized: true,
-    cookie: { maxAge: 24 * 60 * 60 * 1000 } // Сессия на 1 день
+    secret: 'aura-secret-key-1337',
+    resave: true,
+    saveUninitialized: false,
+    cookie: { 
+        maxAge: 7 * 24 * 60 * 60 * 1000,
+        secure: false 
+    }
 }));
 
-const USERS_FILE = './users.json';
-const MESSAGES_FILE = './messages.json';
+const USERS_FILE = path.join(__dirname, 'users.json');
+const MESSAGES_FILE = path.join(__dirname, 'messages.json');
 
-// --- Работа с данными ---
 const readData = (file) => {
     if (!fs.existsSync(file)) return file === USERS_FILE ? {} : [];
     try { 
         const data = fs.readFileSync(file, 'utf8');
         return data ? JSON.parse(data) : (file === USERS_FILE ? {} : []); 
-    } catch (e) { 
-        return file === USERS_FILE ? {} : []; 
-    }
+    } catch (e) { return file === USERS_FILE ? {} : []; }
 };
 
-const writeData = (file, data) => {
-    fs.writeFileSync(file, JSON.stringify(data, null, 2));
-};
+const writeData = (file, data) => fs.writeFileSync(file, JSON.stringify(data, null, 2));
 
 const onlineUsers = {};
 
-// --- Авторизация ---
+// --- API Роуты ---
+
 app.post('/register', async (req, res) => {
-    const { username, password, name } = req.body;
+    const { username, password, name, email } = req.body;
+    if (!username || !password || !email) return res.status(400).json({error: "Заполните все поля"});
+    
     const users = readData(USERS_FILE);
-    if (users[username]) return res.status(400).json({error: "Ник занят"});
+    if (users[username]) return res.status(400).json({error: "Никнейм уже занят"});
+    
     const hashedPassword = await bcrypt.hash(password, 10);
-    users[username] = { name, password: hashedPassword, avatar: "" };
+    users[username] = { 
+        name: name || username, 
+        password: hashedPassword, 
+        email: email,
+        avatar: "" 
+    };
+    
     writeData(USERS_FILE, users);
-    req.session.user = { username, name, avatar: "" };
+    req.session.user = { username, name: users[username].name, avatar: "" };
     res.json({success: true});
 });
 
@@ -60,31 +80,71 @@ app.post('/login', async (req, res) => {
     const { username, password } = req.body;
     const users = readData(USERS_FILE);
     const user = users[username];
+    
     if (user && await bcrypt.compare(password, user.password)) {
-        req.session.user = { username, name: user.name, avatar: user.avatar || "" };
-        res.json({success: true});
-    } else { res.status(400).json({error: "Ошибка входа"}); }
+        req.session.user = { 
+            username, 
+            name: user.name, 
+            avatar: user.avatar || "" 
+        };
+        req.session.save(() => res.json({success: true}));
+    } else { 
+        res.status(400).json({error: "Неверный логин или пароль"}); 
+    }
 });
 
-app.get('/me', (req, res) => res.json(req.session.user || {}));
+app.post('/send-recovery-code', (req, res) => {
+    const { email } = req.body;
+    const users = readData(USERS_FILE);
+    const username = Object.keys(users).find(u => users[u].email === email);
+    if (!username) return res.status(404).json({error: "Пользователь не найден"});
+
+    const code = Math.floor(100000 + Math.random() * 900000); 
+    recoveryCodes[email] = { code, username };
+
+    const mailOptions = {
+        from: '"Aura Messenger" <auramessengercode@gmail.com>',
+        to: email,
+        subject: 'Код восстановления пароля Aura',
+        text: `Ваш код: ${code}. Никнейм: @${username}`
+    };
+
+    transporter.sendMail(mailOptions, (err) => {
+        if (err) return res.status(500).json({error: "Ошибка почты"});
+        res.json({success: true});
+    });
+});
+
+app.post('/reset-password', async (req, res) => {
+    const { email, code, newPassword } = req.body;
+    const record = recoveryCodes[email];
+    if (record && record.code == code) {
+        const users = readData(USERS_FILE);
+        users[record.username].password = await bcrypt.hash(newPassword, 10);
+        writeData(USERS_FILE, users);
+        delete recoveryCodes[email];
+        res.json({success: true});
+    } else {
+        res.status(400).json({error: "Неверный код"});
+    }
+});
+
+app.get('/me', (req, res) => {
+    if (req.session.user) res.json(req.session.user);
+    else res.status(401).json({});
+});
+
 app.get('/logout', (req, res) => {
     req.session.destroy();
     res.redirect('/auth.html');
 });
 
-// --- Профили ---
 app.get('/user/:username', (req, res) => {
     const users = readData(USERS_FILE);
     const user = users[req.params.username];
     if (user) {
-        res.json({
-            name: user.name,
-            avatar: user.avatar || "",
-            username: req.params.username
-        });
-    } else {
-        res.status(404).json({error: "Пользователь не найден"});
-    }
+        res.json({ username: req.params.username, name: user.name, avatar: user.avatar || "" });
+    } else { res.status(404).json({error: "Не найден"}); }
 });
 
 app.post('/update-profile', (req, res) => {
@@ -92,38 +152,29 @@ app.post('/update-profile', (req, res) => {
     const { name, avatar } = req.body;
     const users = readData(USERS_FILE);
     const username = req.session.user.username;
-
     if (users[username]) {
-        users[username].name = name || users[username].name;
-        users[username].avatar = avatar || users[username].avatar;
+        if (name) users[username].name = name;
+        if (avatar !== undefined) users[username].avatar = avatar;
         writeData(USERS_FILE, users);
-        
-        // Обновляем данные в текущей сессии
         req.session.user.name = users[username].name;
         req.session.user.avatar = users[username].avatar;
         res.json({success: true});
-    } else {
-        res.status(404).json({error: "Пользователь не найден"});
-    }
+    } else { res.status(404).json({error: "Не найден"}); }
 });
 
-// --- Сокеты ---
+// --- Socket.IO Логика ---
+
 io.on('connection', (socket) => {
     let currentUsername = "";
 
     socket.on('identify', (username) => {
         currentUsername = username;
         onlineUsers[username] = socket.id;
-        console.log(`@${username} в сети`);
     });
 
     socket.on('search_user', (targetUsername) => {
         const users = readData(USERS_FILE);
-        if (users[targetUsername]) {
-            socket.emit('search_result', { exists: true, username: targetUsername });
-        } else {
-            socket.emit('search_result', { exists: false });
-        }
+        socket.emit('search_result', { exists: !!users[targetUsername], username: targetUsername });
     });
 
     socket.on('get_my_chats', () => {
@@ -131,56 +182,106 @@ io.on('connection', (socket) => {
         const allMsgs = readData(MESSAGES_FILE);
         const chatPartners = new Set();
         allMsgs.forEach(m => {
-            if (m.from === currentUsername) chatPartners.add(m.to);
-            if (m.to === currentUsername) chatPartners.add(m.from);
+            if (m.from === currentUsername && m.to !== currentUsername && m.to !== 'me') chatPartners.add(m.to);
+            if (m.to === currentUsername && m.from !== currentUsername) chatPartners.add(m.from);
         });
         socket.emit('my_chats_list', Array.from(chatPartners));
     });
 
     socket.on('get_history', (otherUser) => {
+        if (!currentUsername) return;
         const allMsgs = readData(MESSAGES_FILE);
-        const chatHistory = allMsgs.filter(m => 
-            (m.from === currentUsername && m.to === otherUser) || 
-            (m.from === otherUser && m.to === currentUsername)
-        );
+        
+        let chatHistory;
+        if (otherUser === 'me' || otherUser === currentUsername) {
+            chatHistory = allMsgs.filter(m => 
+                (m.from === currentUsername && m.to === 'me') || 
+                (m.from === currentUsername && m.to === currentUsername)
+            );
+        } else {
+            chatHistory = allMsgs.filter(m => 
+                (m.from === currentUsername && m.to === otherUser) || 
+                (m.from === otherUser && m.to === currentUsername)
+            );
+        }
         socket.emit('chat_history', chatHistory);
     });
 
-    // ОБНОВЛЕННЫЙ ПРИЕМ СООБЩЕНИЙ С ПОДДЕРЖКОЙ ОТВЕТОВ
     socket.on('private_msg', (data) => {
-        if (!currentUsername) return;
-        
-        const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-        
-        // Формируем объект сообщения
+        if (!currentUsername || !data.to) return;
+
         const msg = { 
-            from: currentUsername,
-            to: data.to,
-            text: data.text,
-            reply: data.reply || null, // Добавляем данные об ответе (если есть)
-            time: time 
+            id: Date.now() + Math.random().toString(36).substr(2, 9), // Уникальный ID
+            from: currentUsername, 
+            to: data.to, 
+            text: data.text || "",
+            media: data.media || null,
+            reply: data.reply || null,
+            read: false, // Новое сообщение не прочитано
+            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) 
         };
 
         const allMsgs = readData(MESSAGES_FILE);
         allMsgs.push(msg);
         writeData(MESSAGES_FILE, allMsgs);
 
-        // Отправка получателю
-        if (onlineUsers[data.to]) {
-            io.to(onlineUsers[data.to]).emit('msg_receive', msg);
+        // Отправка получателю и себе
+        if (data.to === 'me' || data.to === currentUsername) {
+            socket.emit('msg_receive', msg);
+        } else {
+            if (onlineUsers[data.to]) {
+                io.to(onlineUsers[data.to]).emit('msg_receive', msg);
+            }
+            socket.emit('msg_receive', msg);
         }
-        // Отправка отправителю (подтверждение)
-        socket.emit('msg_receive', msg);
+    });
+
+    // --- Логика статуса "Прочитано" ---
+    socket.on('mark_read', (data) => {
+        const { chatWith } = data;
+        let allMsgs = readData(MESSAGES_FILE);
+        let changed = false;
+
+        allMsgs = allMsgs.map(m => {
+            if (m.from === chatWith && m.to === currentUsername && !m.read) {
+                m.read = true;
+                changed = true;
+            }
+            return m;
+        });
+
+        if (changed) {
+            writeData(MESSAGES_FILE, allMsgs);
+            if (onlineUsers[chatWith]) {
+                io.to(onlineUsers[chatWith]).emit('messages_read', { by: currentUsername });
+            }
+        }
+    });
+
+    // --- Логика удаления сообщения ---
+    socket.on('delete_msg', (msgId) => {
+        let allMsgs = readData(MESSAGES_FILE);
+        const msgToDelete = allMsgs.find(m => m.id === msgId);
+        
+        if (msgToDelete && msgToDelete.from === currentUsername) {
+            const recipient = msgToDelete.to;
+            allMsgs = allMsgs.filter(m => m.id !== msgId);
+            writeData(MESSAGES_FILE, allMsgs);
+
+            // Уведомляем обоих участников об удалении
+            socket.emit('msg_deleted', msgId);
+            if (onlineUsers[recipient]) {
+                io.to(onlineUsers[recipient]).emit('msg_deleted', msgId);
+            }
+        }
     });
 
     socket.on('disconnect', () => {
-        if (currentUsername) {
-            delete onlineUsers[currentUsername];
-        }
+        if (currentUsername) delete onlineUsers[currentUsername];
     });
 });
 
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-    console.log(`Сервер запущен на порту ${PORT}`);
+    console.log(`Aura Messenger Pro запущен на порту ${PORT}`);
 });
