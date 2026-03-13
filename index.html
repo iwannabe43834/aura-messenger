@@ -131,7 +131,7 @@
 
                 const result = await res.json();
                 if (res.ok) {
-                    window.location.href = '/'; 
+                    window.location.href = '/chat.html'; 
                 } else {
                     showToast(result.error || "Ошибка доступа");
                     authBtn.disabled = false;
@@ -290,3 +290,4 @@
     </style>
 </body>
 </html>
+
