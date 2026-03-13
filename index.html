@@ -184,7 +184,7 @@
 
                 const result = await response.json();
                 if (response.ok) {
-                    window.location.href = '/';
+                    window.location.href = '/chat.html';
                 } else {
                     showToast(result.error || "Ошибка");
                 }
@@ -301,3 +301,4 @@
     </style>
 </body>
 </html>
+
