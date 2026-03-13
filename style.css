@@ -41,8 +41,8 @@
 }
 
 body, html {
-    height: 100vh;
-    width: 100vw;
+    height: 100%;
+    width: 100%;
     font-family: 'Inter', -apple-system, system-ui, sans-serif;
     background: var(--bg-gradient);
     color: var(--text-main);
@@ -71,6 +71,7 @@ body, html {
     display: flex;
     background: var(--glass-bg);
     backdrop-filter: blur(25px);
+    -webkit-backdrop-filter: blur(25px);
     border: 1px solid var(--glass-border);
     border-radius: 24px;
     box-shadow: var(--shadow);
@@ -143,11 +144,12 @@ body, html {
     flex-direction: column;
     background: rgba(0, 0, 0, 0.03);
     flex-shrink: 0;
+    transition: transform 0.3s ease;
 }
 .sidebar-header { padding: 20px; }
 .header-top { display: flex; align-items: center; gap: 15px; margin-bottom: 15px; }
 .menu-btn { background: none; border: none; color: var(--primary); font-size: 1.5rem; cursor: pointer; }
-.sidebar-header h2 { color: var(--text-main); font-size: 1.3rem; }
+.sidebar-header h2 { color: var(--text-main); font-size: 1.3rem; margin: 0; }
 
 .search-wrapper { position: relative; display: flex; align-items: center; }
 .search-icon { position: absolute; left: 15px; opacity: 0.4; }
@@ -196,23 +198,32 @@ body, html {
     text-align: center; z-index: 1; background: var(--modal-bg);
 }
 
-.chat-header { padding: 15px 25px; border-bottom: 1px solid var(--glass-border); flex-shrink: 0; }
-.status { font-size: 0.8rem; color: #00b894; }
+.chat-header { 
+    padding: 15px 25px; 
+    border-bottom: 1px solid var(--glass-border); 
+    flex-shrink: 0; 
+    display: flex;
+    align-items: center;
+    gap: 15px;
+}
+.mobile-back-btn {
+    display: none; /* Скрыта на ПК */
+    background: none;
+    border: none;
+    color: var(--primary);
+    font-size: 1.5rem;
+    cursor: pointer;
+}
+.status { font-size: 0.8rem; color: #00b894; margin-left: 10px;}
 
 /* Messages Layout */
 .messages-container {
     flex: 1; padding: 20px; overflow-y: auto; 
-    display: flex; 
-    flex-direction: column; 
-    gap: 10px; 
-    min-height: 0;
+    display: flex; flex-direction: column; gap: 10px; min-height: 0;
 }
 
 .message-row { 
-    display: flex; 
-    width: 100%; 
-    margin-bottom: 4px;
-    align-items: flex-end;
+    display: flex; width: 100%; margin-bottom: 4px; align-items: flex-end;
 }
 .message-row.mine { justify-content: flex-end; }
 .message-row.other { justify-content: flex-start; }
@@ -227,19 +238,16 @@ body, html {
     font-size: 0.95rem; 
     line-height: 1.4; 
     position: relative;
+    word-break: break-word;
 }
 
 .mine .bubble { 
-    background: var(--bubble-mine); 
-    color: white; 
-    border-bottom-right-radius: 4px; 
+    background: var(--bubble-mine); color: white; border-bottom-right-radius: 4px; 
 }
 
 .other .bubble { 
-    background: var(--bubble-other); 
-    color: var(--text-main); 
-    border-bottom-left-radius: 4px; 
-    border: 1px solid var(--glass-border); 
+    background: var(--bubble-other); color: var(--text-main); 
+    border-bottom-left-radius: 4px; border: 1px solid var(--glass-border); 
 }
 
 /* Reply Content Inside Bubble */
@@ -277,12 +285,13 @@ body, html {
 .input-container input {
     flex: 1; padding: 14px 20px; border-radius: 15px;
     background: var(--glass-hover); border: 1px solid var(--glass-border);
-    color: var(--text-main); outline: none;
+    color: var(--text-main); outline: none; font-size: 16px; /* 16px предотвращает зум на iOS */
 }
 .input-container button {
     width: 50px; height: 50px; border-radius: 15px;
     background: var(--primary); border: none; cursor: pointer;
     display: flex; align-items: center; justify-content: center; transition: 0.3s;
+    flex-shrink: 0;
 }
 .input-container button:hover { transform: scale(1.05); background: var(--primary-hover); }
 
@@ -312,3 +321,43 @@ input:checked + .slider { background: var(--primary); }
 input:checked + .slider:before { transform: translateX(20px); }
 
 .hidden { display: none !important; }
+
+/* =========================================
+   МОБИЛЬНАЯ АДАПТАЦИЯ (ТЕЛЕФОНЫ)
+   ========================================= */
+@media (max-width: 768px) {
+    .app-container {
+        width: 100vw;
+        height: 100vh;
+        max-width: 100%;
+        border-radius: 0;
+        border: none;
+    }
+
+    .sidebar {
+        width: 100%;
+        position: absolute;
+        z-index: 10;
+        height: 100%;
+        background: var(--modal-bg); /* Чтобы не просвечивал чат снизу */
+    }
+
+    /* Когда открыт чат, сдвигаем сайдбар влево */
+    .app-container.chat-open .sidebar {
+        transform: translateX(-100%);
+    }
+
+    .chat-area {
+        width: 100%;
+        height: 100%;
+    }
+
+    .bubble { max-width: 85%; }
+    
+    .input-container { padding: 10px 15px; }
+    
+    /* Показываем кнопку "Назад" на телефонах */
+    .mobile-back-btn {
+        display: block;
+    }
+}
