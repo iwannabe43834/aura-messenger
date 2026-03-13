@@ -253,7 +253,7 @@
         try {
             const res = await fetch('/me');
             currentUser = await res.json();
-            if (!currentUser.username) return window.location.href = '/auth.html';
+            if (!currentUser.username) return window.location.href = '/index.html';
             
             socket.emit('identify', currentUser.username);
             socket.emit('get_my_chats'); 
@@ -261,7 +261,7 @@
             document.getElementById('edit-display-name').value = currentUser.name || '';
             applySavedPreferences();
             updateHeaderUI();
-        } catch (err) { window.location.href = '/auth.html'; }
+        } catch (err) { window.location.href = '/index.html'; }
     }
     init();
 
@@ -526,3 +526,4 @@
 </script>
 </body>
 </html>
+
