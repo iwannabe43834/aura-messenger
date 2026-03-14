@@ -19,7 +19,7 @@ const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
         user: 'auramessengercode@gmail.com', 
-        pass: 'zbhr wprc tqzl fhyu' 
+        pass: 'jcxi laqa dlmv vaji' 
     }
 });
 
