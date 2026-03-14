@@ -95,42 +95,49 @@ app.post('/login', async (req, res) => {
 });
 
 app.post('/send-recovery-code', async (req, res) => {
-    const { email } = req.body;
+    console.log(">>> [LOG]: Запрос на восстановление для:", req.body.email);
     
     try {
+        const { email } = req.body;
         const users = readData(USERS_FILE);
-        // Ищем пользователя по email
-        const username = Object.keys(users).find(u => users[u].email === email);
         
+        // 1. Ищем пользователя
+        const username = Object.keys(users).find(u => users[u].email === email);
         if (!username) {
-            // Возвращаем 404, если почта не найдена, чтобы сервер не зависал
-            return res.status(404).json({ error: "Пользователь с такой почтой не найден" });
+            console.log(">>> [LOG]: Email не найден в базе");
+            return res.status(404).json({ error: "Пользователь не найден" });
         }
 
-        const code = Math.floor(100000 + Math.random() * 900000); 
-        // Сохраняем код (email должен быть ключом)
+        // 2. Генерируем код
+        const code = Math.floor(100000 + Math.random() * 900000).toString();
         recoveryCodes[email] = { code, username };
 
+        // 3. Настройка письма
         const mailOptions = {
             from: '"Aura Messenger" <auramessengercode@gmail.com>',
             to: email,
-            subject: 'Код восстановления пароля Aura',
-            text: `Ваш код для сброса пароля: ${code}. Ваш никнейм: @${username}`
+            subject: 'Код восстановления Aura',
+            text: `Ваш код: ${code}. Никнейм: @${username}`
         };
 
-        // Используем await или правильный callback
-        transporter.sendMail(mailOptions, (err, info) => {
-            if (err) {
-                console.error("Ошибка Nodemailer:", err);
-                return res.status(500).json({ error: "Ошибка при отправке письма. Проверьте настройки Gmail." });
-            }
-            console.log("Письмо успешно отправлено: " + info.response);
-            res.json({ success: true });
-        });
+        console.log(">>> [LOG]: Пытаюсь отправить через Gmail...");
 
-    } catch (e) {
-        console.error("Критическая ошибка сервера:", e);
-        res.status(500).json({ error: "Внутренняя ошибка сервера" });
+        // 4. Отправка с использованием await (обязательно!)
+        const info = await transporter.sendMail(mailOptions);
+        
+        console.log(">>> [LOG]: Письмо отправлено успешно:", info.response);
+        return res.json({ success: true });
+
+    } catch (error) {
+        // ЭТОТ БЛОК ВЫВЕДЕТ ОШИБКУ В РЕНДЕР, ЕСЛИ ЧТО-ТО НЕ ТАК
+        console.error(">>> [ERROR] ОШИБКА ПОЧТЫ:");
+        console.error("Текст ошибки:", error.message);
+        console.error("Код ошибки:", error.code);
+        
+        return res.status(500).json({ 
+            error: "Сервер не смог отправить письмо", 
+            details: error.message 
+        });
     }
 });
 
