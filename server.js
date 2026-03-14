@@ -16,14 +16,19 @@ const io = new Server(server, {
 
 // --- Настройка почты ---
 const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true, // Используем SSL
     auth: {
         user: 'auramessengercode@gmail.com', 
         pass: 'jcxi laqa dlmv vaji' 
-    }
+    },
+    tls: {
+        // Не падать при проверке сертификата (важно для Render)
+        rejectUnauthorized: false
+    },
+    connectionTimeout: 10000 // Ждать не более 10 секунд
 });
-
-const recoveryCodes = {};
 
 // --- Настройки сервера ---
 app.use(express.json({ limit: '50mb' }));
