@@ -12,5 +12,6 @@
     "express-session": "^1.17.3",
     "nodemailer": "^6.9.7",
     "socket.io": "^4.7.2"
+    "resend": "^3.2.0"
   }
 }
