@@ -94,26 +94,44 @@ app.post('/login', async (req, res) => {
     }
 });
 
-app.post('/send-recovery-code', (req, res) => {
+app.post('/send-recovery-code', async (req, res) => {
     const { email } = req.body;
-    const users = readData(USERS_FILE);
-    const username = Object.keys(users).find(u => users[u].email === email);
-    if (!username) return res.status(404).json({error: "Пользователь не найден"});
+    
+    try {
+        const users = readData(USERS_FILE);
+        // Ищем пользователя по email
+        const username = Object.keys(users).find(u => users[u].email === email);
+        
+        if (!username) {
+            // Возвращаем 404, если почта не найдена, чтобы сервер не зависал
+            return res.status(404).json({ error: "Пользователь с такой почтой не найден" });
+        }
 
-    const code = Math.floor(100000 + Math.random() * 900000); 
-    recoveryCodes[email] = { code, username };
+        const code = Math.floor(100000 + Math.random() * 900000); 
+        // Сохраняем код (email должен быть ключом)
+        recoveryCodes[email] = { code, username };
 
-    const mailOptions = {
-        from: '"Aura Messenger" <auramessengercode@gmail.com>',
-        to: email,
-        subject: 'Код восстановления пароля Aura',
-        text: `Ваш код: ${code}. Никнейм: @${username}`
-    };
+        const mailOptions = {
+            from: '"Aura Messenger" <auramessengercode@gmail.com>',
+            to: email,
+            subject: 'Код восстановления пароля Aura',
+            text: `Ваш код для сброса пароля: ${code}. Ваш никнейм: @${username}`
+        };
 
-    transporter.sendMail(mailOptions, (err) => {
-        if (err) return res.status(500).json({error: "Ошибка почты"});
-        res.json({success: true});
-    });
+        // Используем await или правильный callback
+        transporter.sendMail(mailOptions, (err, info) => {
+            if (err) {
+                console.error("Ошибка Nodemailer:", err);
+                return res.status(500).json({ error: "Ошибка при отправке письма. Проверьте настройки Gmail." });
+            }
+            console.log("Письмо успешно отправлено: " + info.response);
+            res.json({ success: true });
+        });
+
+    } catch (e) {
+        console.error("Критическая ошибка сервера:", e);
+        res.status(500).json({ error: "Внутренняя ошибка сервера" });
+    }
 });
 
 app.post('/reset-password', async (req, res) => {
