@@ -3,301 +3,631 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aura — Добро пожаловать</title>
-    <link rel="stylesheet" href="style.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <title>Aura Messenger — Вход</title>
+    <style>
+        /* Базовые стили */
+        body {
+            background-color: #0e1621;
+            background-image: radial-gradient(circle at 50% 0%, #1a2533 0%, #0e1621 70%);
+            color: #e0e0e0;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, sans-serif;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Эффект стекла для карточки */
+        .auth-card {
+            width: 100%;
+            max-width: 400px;
+            padding: 40px 30px;
+            background: rgba(23, 33, 43, 0.6);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 24px;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            text-align: center;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Текстовый логотип (Минимализм) */
+        .auth-logo {
+            margin-bottom: 30px;
+        }
+        .aura-text-logo {
+            font-family: 'Times New Roman', Times, serif; 
+            font-size: 32px;
+            letter-spacing: 12px;
+            text-transform: uppercase;
+            color: #ffffff;
+            font-weight: 300;
+            text-shadow: 0 0 20px rgba(135, 116, 225, 0.4);
+            margin-right: -12px; 
+        }
+
+        /* Если захочешь вернуть фото, раскомментируй этот класс в HTML */
+        .auth-logo img {
+            width: 80px;
+            height: 80px;
+            border-radius: 50%;
+            object-fit: cover;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #fff;
+            letter-spacing: 0.5px;
+        }
+
+        .subtitle {
+            color: #7f91a4;
+            font-size: 14px;
+            margin-bottom: 30px;
+            line-height: 1.5;
+        }
+
+        .input-group {
+            margin-bottom: 18px;
+            text-align: left;
+        }
+
+        .input-group label {
+            display: block;
+            color: #8774e1;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+            margin-left: 5px;
+            font-weight: 600;
+        }
+
+        .input-group input {
+            width: 100%;
+            background: rgba(36, 47, 61, 0.8);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 14px;
+            padding: 14px 16px;
+            color: #fff;
+            font-size: 15px;
+            outline: none;
+            box-sizing: border-box;
+            transition: all 0.3s ease;
+        }
+
+        .input-group input:focus {
+            border-color: #8774e1;
+            background: rgba(36, 47, 61, 1);
+            box-shadow: 0 0 0 3px rgba(135, 116, 225, 0.15);
+        }
+
+        /* Блок "Обучалка" для Telegram */
+        .tg-guide {
+            background: rgba(135, 116, 225, 0.08);
+            border: 1px solid rgba(135, 116, 225, 0.2);
+            border-radius: 16px;
+            padding: 15px;
+            margin-bottom: 20px;
+            text-align: left;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .tg-guide-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #8774e1;
+            font-weight: 600;
+            font-size: 13px;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .tg-steps {
+            margin: 0;
+            padding-left: 20px;
+            color: #aeb5bc;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        .tg-steps li {
+            margin-bottom: 4px;
+        }
+
+        .tg-link {
+            color: #3390ec;
+            text-decoration: none;
+            font-weight: 500;
+            transition: opacity 0.2s;
+        }
+        .tg-link:hover { opacity: 0.8; }
+
+        .auth-btn {
+            width: 100%;
+            padding: 15px;
+            background: #8774e1;
+            color: #fff;
+            border: none;
+            border-radius: 14px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+            letter-spacing: 0.5px;
+        }
+
+        .auth-btn:hover {
+            background: #7a66cb;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(135, 116, 225, 0.3);
+        }
+
+        .auth-btn:active { transform: translateY(0); }
+        .auth-btn:disabled { background: #444; color: #888; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        .auth-btn.secondary {
+            background: transparent;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 12px;
+        }
+
+        .auth-btn.secondary:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: rgba(255, 255, 255, 0.2);
+            box-shadow: none;
+        }
+
+        .text-link {
+            color: #8774e1;
+            font-size: 13px;
+            display: inline-block;
+            margin-top: 25px;
+            text-decoration: none;
+            cursor: pointer;
+            transition: color 0.2s;
+            font-weight: 500;
+        }
+
+        .text-link:hover { color: #a395e9; }
+
+        .hidden { display: none !important; }
+
+        #authCode, #resetCode {
+            text-align: center;
+            font-size: 28px;
+            letter-spacing: 12px;
+            font-weight: 700;
+            font-family: monospace;
+            padding: 10px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Декоративные сферы на фоне для красоты */
+        .bg-blob {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            z-index: 1;
+            opacity: 0.4;
+            pointer-events: none;
+        }
+        .blob-1 { width: 300px; height: 300px; background: #8774e1; top: -100px; left: -100px; }
+        .blob-2 { width: 250px; height: 250px; background: #3390ec; bottom: -50px; right: -50px; }
+    </style>
 </head>
 <body>
 
-    <div class="bg-animation">
-        <div class="shape shape-1"></div>
-        <div class="shape shape-2"></div>
-    </div>
+    <div class="bg-blob blob-1"></div>
+    <div class="bg-blob blob-2"></div>
 
-    <div id="toast-container" class="toast-container"></div>
+    <div class="auth-card">
+        <div class="auth-logo">
+            <div class="aura-text-logo">AURA</div>
+        </div>
 
-    <div class="auth-container animate__fadeIn">
-        <div class="auth-icon">✨</div>
-        
-        <h2 id="auth-title">Вход в Aura</h2>
-        <p id="auth-subtitle">Твой уютный уголок для общения</p>
-        
-        <div class="input-group" id="auth-form">
-            <div class="input-wrapper reg-only hidden">
-                <i class="fas fa-user"></i>
-                <input type="text" id="name" placeholder="Ваше Имя" autocomplete="off">
+        <div id="stepIdentify">
+            <h1>Добро пожаловать</h1>
+            <p class="subtitle">Введите ваш Username или E-mail для входа</p>
+            <div class="input-group">
+                <label>Идентификатор</label>
+                <input type="text" id="loginInput" placeholder="nickname или email">
             </div>
+            <button class="auth-btn" id="btnIdentify" onclick="identifyUser()">ПРОДОЛЖИТЬ</button>
+            <button class="auth-btn secondary" onclick="showStep('stepRegister')">СОЗДАТЬ АККАУНТ</button>
+        </div>
 
-            <div id="email-wrapper" class="input-wrapper reg-only hidden">
-                <i class="fas fa-envelope"></i>
-                <input type="email" id="email" placeholder="Email" autocomplete="off">
+        <div id="stepChooseMethod" class="hidden">
+            <h1 id="welcomeUserText">С возвращением</h1>
+            <p class="subtitle">Выберите способ подтверждения личности</p>
+            
+            <button class="auth-btn" onclick="showStep('stepPasswordLogin')">ВОЙТИ ПО ПАРОЛЮ</button>
+            
+            <button class="auth-btn secondary hidden" id="btnMethodTg" onclick="requestAuthCode('telegram')">ПОЛУЧИТЬ КОД В TELEGRAM</button>
+            <button class="auth-btn secondary hidden" id="btnMethodEmail" onclick="requestAuthCode('email')">ПОЛУЧИТЬ КОД НА E-MAIL</button>
+            
+            <span class="text-link" onclick="showStep('stepIdentify')">Это не мой аккаунт</span>
+        </div>
+
+        <div id="stepPasswordLogin" class="hidden">
+            <h1>Авторизация</h1>
+            <p class="subtitle">Используйте ваш постоянный пароль</p>
+            <div class="input-group">
+                <label>Пароль</label>
+                <input type="password" id="loginPass" placeholder="••••••••">
             </div>
-
-            <div id="username-wrapper" class="input-wrapper">
-                <i class="fas fa-at"></i>
-                <input type="text" id="username" placeholder="Username" autocomplete="off">
-            </div>
-
-            <div id="password-wrapper" class="input-wrapper">
-                <i class="fas fa-lock"></i>
-                <input type="password" id="password" placeholder="Пароль">
-            </div>
-
-            <div id="code-wrapper" class="input-wrapper hidden">
-                <i class="fas fa-key"></i>
-                <input type="text" id="recovery-code" placeholder="Код из письма">
+            <button class="auth-btn" id="btnLoginPass" onclick="loginWithPassword()">ВОЙТИ</button>
+            <div style="display: flex; justify-content: space-between; margin-top: 10px;">
+                <span class="text-link" style="margin-top: 15px;" onclick="showStep('stepChooseMethod')">← Назад</span>
+                <span class="text-link" style="margin-top: 15px;" onclick="initPasswordReset()">Забыли пароль?</span>
             </div>
         </div>
-        
-        <button id="auth-btn">Войти</button>
-        
-        <div class="auth-footer">
-            <div class="toggle-link" id="toggle-auth">Нет аккаунта? Зарегистрироваться</div>
-            <div class="toggle-link" id="forgot-password">Забыли пароль?</div>
+
+        <div id="stepCode" class="hidden">
+            <h1>Код доступа</h1>
+            <p class="subtitle" id="codeSubtitle">Мы отправили секретный код</p>
+            
+            <div class="tg-guide hidden" id="verifyTgGuide">
+                <div class="tg-guide-header">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2L2 10.5L9.5 13M21.5 2L14 22L9.5 13M21.5 2L9.5 13L6 20.5"/></svg>
+                    Инструкция
+                </div>
+                <ol class="tg-steps">
+                    <li>Откройте бота <a href="https://t.me/AuraCode_ebot" target="_blank" class="tg-link">@AuraCode_ebot</a></li>
+                    <li>Дождитесь сообщения с кодом</li>
+                    <li>Введите 4 цифры ниже</li>
+                </ol>
+            </div>
+
+            <div class="input-group">
+                <label>4-значный код</label>
+                <input type="text" id="authCode" placeholder="0000" maxlength="4" autocomplete="off">
+            </div>
+            <button class="auth-btn" id="btnVerify" onclick="verifyCode()">ПОДТВЕРДИТЬ</button>
+            <span class="text-link" onclick="showStep('stepChooseMethod')">Изменить способ</span>
+        </div>
+
+        <div id="stepResetPassword" class="hidden">
+            <h1>Восстановление</h1>
+            <p class="subtitle">Сброс пароля через Telegram-бота</p>
+            
+            <div class="tg-guide">
+                <div class="tg-guide-header">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.5 2L2 10.5L9.5 13M21.5 2L14 22L9.5 13M21.5 2L9.5 13L6 20.5"/></svg>
+                    Как получить код?
+                </div>
+                <ol class="tg-steps">
+                    <li>Перейдите в бота <a href="https://t.me/AuraCode_ebot" target="_blank" class="tg-link">@AuraCode_ebot</a></li>
+                    <li>Если вы там впервые, нажмите <b>Запустить</b></li>
+                    <li>Скопируйте присланный ботом код</li>
+                </ol>
+            </div>
+
+            <div class="input-group">
+                <label>Код из Telegram</label>
+                <input type="text" id="resetCode" placeholder="0000" maxlength="4" autocomplete="off">
+            </div>
+            <div class="input-group">
+                <label>Новый пароль</label>
+                <input type="password" id="resetPass" placeholder="Минимум 6 символов">
+            </div>
+            <button class="auth-btn" id="btnReset" onclick="resetPassword()">СОХРАНИТЬ И ВОЙТИ</button>
+            <span class="text-link" onclick="showStep('stepPasswordLogin')">Отмена</span>
+        </div>
+
+        <div id="stepRegister" class="hidden">
+            <h1>Создание аккаунта</h1>
+            <p class="subtitle">Присоединяйтесь к Aura Messenger</p>
+
+            <div class="input-group">
+                <label>Ваше имя*</label>
+                <input type="text" id="regFullName" placeholder="Например: Александр">
+            </div>
+            <div class="input-group">
+                <label>Username (логин)*</label>
+                <input type="text" id="regUsername" placeholder="alex_aura">
+            </div>
+            
+            <div class="tg-guide" style="margin-top: 25px;">
+                <div class="tg-guide-header">Привязка Telegram (Обязательно)</div>
+                <p style="font-size: 12px; color: #aeb5bc; margin: 0 0 10px 0; line-height: 1.4;">
+                    Мы не используем @username для безопасности. Нажмите кнопку ниже, чтобы привязать свой аккаунт напрямую.
+                </p>
+                <div id="tg-bind-area" style="text-align: center;">
+                    <button class="auth-btn secondary" style="margin-top:0;" onclick="startTgBinding(event)">
+                        ПРИВЯЗАТЬ TELEGRAM
+                    </button>
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Пароль*</label>
+                <input type="password" id="regPass" placeholder="Придумайте надежный пароль">
+            </div>
+            
+            <button class="auth-btn" id="btnRegister" onclick="finishRegistration()">ЗАРЕГИСТРИРОВАТЬСЯ</button>
+            <span class="text-link" onclick="showStep('stepIdentify')">Уже есть аккаунт? Войти</span>
         </div>
     </div>
 
     <script>
-        const authBtn = document.getElementById('auth-btn');
-        const toggleLink = document.getElementById('toggle-auth');
-        const forgotLink = document.getElementById('forgot-password');
-        const authTitle = document.getElementById('auth-title');
-        const authSubtitle = document.getElementById('auth-subtitle');
-        const regOnlyFields = document.querySelectorAll('.reg-only');
+        let identifiedUsername = ''; 
+        let currentLoginId = '';    
+        let canResetViaTelegram = false;
         
-        let mode = 'login'; // login, register, forgot, reset
+        // НОВЫЕ ПЕРЕМЕННЫЕ ДЛЯ БЕЗОПАСНОЙ ПРИВЯЗКИ
+        let boundTgId = null;
+        let bindInterval = null;
 
-        function showToast(message, type = 'error') {
-            const container = document.getElementById('toast-container');
-            const toast = document.createElement('div');
-            toast.className = `toast ${type}`;
-            const icon = type === 'success' ? 'fa-check-circle' : 'fa-exclamation-circle';
-            toast.innerHTML = `<i class="fas ${icon}"></i><span>${message}</span>`;
-            container.appendChild(toast);
-            setTimeout(() => {
-                toast.classList.add('fade-out');
-                setTimeout(() => toast.remove(), 400);
-            }, 3500);
+        function showStep(stepId) {
+            document.querySelectorAll('.auth-card > div:not(.auth-logo)').forEach(div => div.classList.add('hidden'));
+            const target = document.getElementById(stepId);
+            if(target) target.classList.remove('hidden');
         }
 
-        // Переключение режимов
-        function setMode(newMode) {
-            mode = newMode;
-            // Сбрасываем видимость всего
-            document.querySelectorAll('.input-wrapper').forEach(el => el.classList.add('hidden'));
-            forgotLink.classList.remove('hidden');
-
-            if (mode === 'login') {
-                authTitle.innerText = "Вход в Aura";
-                authSubtitle.innerText = "С возвращением!";
-                authBtn.innerText = "Войти";
-                toggleLink.innerText = "Нет аккаунта? Зарегистрироваться";
-                document.getElementById('username-wrapper').classList.remove('hidden');
-                document.getElementById('password-wrapper').classList.remove('hidden');
-            } 
-            else if (mode === 'register') {
-                authTitle.innerText = "Регистрация";
-                authSubtitle.innerText = "Присоединяйся к нам";
-                authBtn.innerText = "Создать аккаунт";
-                toggleLink.innerText = "Уже есть аккаунт? Войти";
-                regOnlyFields.forEach(el => el.classList.remove('hidden'));
-                document.getElementById('username-wrapper').classList.remove('hidden');
-                document.getElementById('password-wrapper').classList.remove('hidden');
-            } 
-            else if (mode === 'forgot') {
-                authTitle.innerText = "Восстановление";
-                authSubtitle.innerText = "Введите почту для получения кода";
-                authBtn.innerText = "Отправить код";
-                toggleLink.innerText = "Вернуться назад";
-                document.getElementById('email-wrapper').classList.remove('hidden');
-                forgotLink.classList.add('hidden');
-            }
-            else if (mode === 'reset') {
-                authTitle.innerText = "Новый пароль";
-                authSubtitle.innerText = "Код отправлен на вашу почту";
-                authBtn.innerText = "Сбросить пароль";
-                document.getElementById('email-wrapper').classList.remove('hidden');
-                document.getElementById('code-wrapper').classList.remove('hidden');
-                document.getElementById('password-wrapper').classList.remove('hidden');
-                forgotLink.classList.add('hidden');
-            }
-        }
-
-        toggleLink.onclick = () => {
-            if (mode === 'login') setMode('register');
-            else setMode('login');
-        };
-
-        forgotLink.onclick = () => setMode('forgot');
-
-        authBtn.onclick = async () => {
-            const username = document.getElementById('username').value.trim();
-            const password = document.getElementById('password').value;
-            const name = document.getElementById('name').value.trim();
-            const email = document.getElementById('email').value.trim();
-            const code = document.getElementById('recovery-code').value.trim();
+        // НОВАЯ ФУНКЦИЯ ДЛЯ ГЕНЕРАЦИИ ССЫЛКИ И ОЖИДАНИЯ
+        async function startTgBinding(e) {
+            e.preventDefault();
+            const btnArea = document.getElementById('tg-bind-area');
+            btnArea.innerHTML = '<i style="color:#aeb5bc; font-size:13px;">Генерация безопасной ссылки...</i>';
 
             try {
-                authBtn.disabled = true;
-                let response;
+                const res = await fetch('/api/generate-tg-token');
+                const data = await res.json();
+                const token = data.token;
+                
+                // Имя твоего тестового бота
+                const botName = 'AuraCode_test_bot'; 
+                const link = `https://t.me/${botName}?start=${token}`;
 
-                if (mode === 'login') {
-                    response = await fetch('/login', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ username: username.replace('@', ''), password })
-                    });
-                } 
-                else if (mode === 'register') {
-                    response = await fetch('/register', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ username: username.replace('@', ''), password, name, email })
-                    });
-                }
-                else if (mode === 'forgot') {
-                    response = await fetch('/send-recovery-code', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ email })
-                    });
-                    if (response.ok) {
-                        showToast("Код отправлен!", "success");
-                        setMode('reset');
-                        authBtn.disabled = false;
-                        return;
-                    }
-                }
-                else if (mode === 'reset') {
-                    response = await fetch('/reset-password', {
-                        method: 'POST',
-                        headers: {'Content-Type': 'application/json'},
-                        body: JSON.stringify({ email, code, newPassword: password })
-                    });
-                    if (response.ok) {
-                        showToast("Пароль изменен!", "success");
-                        setMode('login');
-                        authBtn.disabled = false;
-                        return;
-                    }
-                }
+                btnArea.innerHTML = `
+                    <a href="${link}" target="_blank" class="auth-btn" style="text-decoration:none; background:#3390ec;">
+                        НАЖМИТЕ И ЗАПУСТИТЕ БОТА
+                    </a>
+                    <p style="font-size:11px; color:#8774e1; margin-top:10px; animation: pulse 1.5s infinite;">Ожидание подтверждения в Telegram...</p>
+                `;
 
-                const result = await response.json();
-                if (response.ok) {
-                    window.location.href = '/';
-                } else {
-                    showToast(result.error || "Ошибка");
-                }
-            } catch (err) {
-                showToast("Ошибка сервера");
-            } finally {
-                authBtn.disabled = false;
+                // Опрашиваем сервер каждые 2 секунды
+                bindInterval = setInterval(async () => {
+                    const checkRes = await fetch(`/api/check-tg-token?token=${token}`);
+                    const checkData = await checkRes.json();
+                    if (checkData.bound) {
+                        clearInterval(bindInterval);
+                        boundTgId = checkData.chatId; // Сохраняем тот самый неизменяемый числовой ID
+                        btnArea.innerHTML = `<div style="color:#4ade80; font-weight:bold; padding: 10px; background: rgba(74, 222, 128, 0.1); border-radius: 12px;">✅ Успешно привязано!</div>`;
+                    }
+                }, 2000);
+
+            } catch(err) {
+                btnArea.innerHTML = `<button class="auth-btn secondary" onclick="startTgBinding(event)">❌ Ошибка сети. Попробовать снова</button>`;
             }
-        };
+        }
 
-        // Авто-тема
-        const savedTheme = localStorage.getItem('aura-theme');
-        if (savedTheme === 'light') document.documentElement.setAttribute('data-theme', 'light');
+        async function identifyUser() {
+            const val = document.getElementById('loginInput').value.trim();
+            if (!val) return alert("Введите данные!");
+
+            const btn = document.getElementById('btnIdentify');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/check-user', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ loginId: val })
+                });
+                const result = await response.json();
+
+                if (response.ok && result.exists) {
+                    currentLoginId = val;
+                    identifiedUsername = result.username;
+                    canResetViaTelegram = result.hasTelegram;
+
+                    document.getElementById('welcomeUserText').innerText = `@${result.username}`;
+                    
+                    document.getElementById('btnMethodEmail').classList.toggle('hidden', !result.hasEmail);
+                    document.getElementById('btnMethodTg').classList.toggle('hidden', !result.hasTelegram);
+                    
+                    showStep('stepChooseMethod');
+                } else {
+                    alert("Пользователь не найден. Проверьте логин или зарегистрируйтесь.");
+                }
+            } catch (e) {
+                alert("Ошибка связи с сервером");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function requestAuthCode(method, isReset = false) {
+            try {
+                const response = await fetch('/api/send-auth-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: identifiedUsername, 
+                        method: method,
+                        isReset: isReset
+                    })
+                });
+                
+                const res = await response.json();
+                if (response.ok) {
+                    if (isReset) {
+                        showStep('stepResetPassword');
+                    } else {
+                        document.getElementById('codeSubtitle').innerText = `Код отправлен в ${method === 'telegram' ? 'Telegram' : 'E-mail'}`;
+                        document.getElementById('verifyTgGuide').classList.toggle('hidden', method !== 'telegram');
+                        document.getElementById('authCode').value = '';
+                        showStep('stepCode');
+                    }
+                } else {
+                    alert(res.error || "Не удалось отправить код");
+                }
+            } catch (e) {
+                alert("Ошибка сети");
+            }
+        }
+
+        async function loginWithPassword() {
+            const pass = document.getElementById('loginPass').value;
+            if (!pass) return alert("Введите пароль");
+
+            const btn = document.getElementById('btnLoginPass');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/login-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ loginId: currentLoginId, password: pass })
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('username', result.user.username);
+                    window.location.href = "/index.html";
+                } else {
+                    alert(result.error || "Неверный пароль");
+                }
+            } catch (e) {
+                alert("Ошибка авторизации");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        async function verifyCode() {
+            const code = document.getElementById('authCode').value.trim();
+            if (code.length < 4) return;
+
+            const btn = document.getElementById('btnVerify');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/verify-code', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: identifiedUsername, code: code }) 
+                });
+                const result = await response.json();
+                
+                if (response.ok) {
+                    localStorage.setItem('username', result.user.username);
+                    window.location.href = "/index.html";
+                } else {
+                    alert(result.error || "Неверный код");
+                }
+            } catch (e) {
+                alert("Ошибка сервера");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        function initPasswordReset() {
+            if (!canResetViaTelegram) {
+                alert("К этому аккаунту не привязан Telegram. Восстановление невозможно.");
+                return;
+            }
+            if (confirm("Отправить код для сброса пароля в ваш Telegram?")) {
+                requestAuthCode('telegram', true);
+            }
+        }
+
+        async function resetPassword() {
+            const code = document.getElementById('resetCode').value.trim();
+            const newPass = document.getElementById('resetPass').value;
+
+            if (code.length < 4) return alert("Введите код из Telegram");
+            if (newPass.length < 6) return alert("Новый пароль должен быть от 6 символов");
+
+            const btn = document.getElementById('btnReset');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        username: identifiedUsername, 
+                        code: code, 
+                        newPassword: newPass 
+                    })
+                });
+                
+                if (response.ok) {
+                    alert("Пароль успешно изменен!");
+                    localStorage.setItem('username', identifiedUsername);
+                    window.location.href = "/index.html";
+                } else {
+                    const res = await response.json();
+                    alert(res.error || "Ошибка при сбросе пароля");
+                }
+            } catch (e) {
+                alert("Ошибка сети");
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+        // ОБНОВЛЕННАЯ ФУНКЦИЯ РЕГИСТРАЦИИ
+        async function finishRegistration() {
+            const name = document.getElementById('regFullName').value.trim();
+            const user = document.getElementById('regUsername').value.trim();
+            const pass = document.getElementById('regPass').value;
+
+            if (!name || !user || pass.length < 6) {
+                return alert("Поля Имя, Логин и Пароль (от 6 симв.) обязательны!");
+            }
+
+            // Проверяем, привязал ли пользователь Телеграм (получили ли мы его ID)
+            if (!boundTgId) {
+                return alert("Пожалуйста, привяжите ваш Telegram перед завершением регистрации!");
+            }
+
+            const btn = document.getElementById('btnRegister');
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/register-final', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        fullname: name, 
+                        username: user, 
+                        telegramId: boundTgId, // Отправляем безопасный ID вместо юзернейма
+                        password: pass 
+                    })
+                });
+                
+                if (response.ok) {
+                    localStorage.setItem('username', user);
+                    window.location.href = "/index.html";
+                } else {
+                    const err = await response.json();
+                    alert(err.error || "Этот логин уже занят");
+                }
+            } catch (e) {
+                alert("Ошибка сети");
+            } finally {
+                btn.disabled = false;
+            }
+        }
     </script>
-
-    <style>
-        .auth-footer {
-            margin-top: 20px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-        }
-        
-        .toast-container {
-            position: fixed;
-            top: 25px;
-            left: 50%;
-            transform: translateX(-50%);
-            z-index: 9999;
-            display: flex;
-            flex-direction: column;
-            gap: 12px;
-            pointer-events: none;
-        }
-
-        .toast {
-            min-width: 280px;
-            padding: 14px 22px;
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(20px);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            border-radius: 16px;
-            color: white;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, 0.3);
-            animation: toastIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-        }
-        
-        .toast.success i { color: #00ff88; }
-        .toast.error i { color: #ff4757; }
-
-        @keyframes toastIn {
-            from { opacity: 0; transform: translateY(-30px) scale(0.9); }
-            to { opacity: 1; transform: translateY(0) scale(1); }
-        }
-
-        .input-wrapper.hidden { display: none !important; }
-        
-        .auth-container {
-            max-width: 400px;
-            margin: 100px auto;
-            padding: 40px;
-            background: rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(15px);
-            border-radius: 24px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-
-        .input-wrapper {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            border-radius: 12px;
-            margin-bottom: 15px;
-            padding: 12px 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .input-wrapper input {
-            background: transparent;
-            border: none;
-            color: white;
-            outline: none;
-            width: 100%;
-        }
-
-        #auth-btn {
-            width: 100%;
-            padding: 15px;
-            background: #7d67ff;
-            border: none;
-            border-radius: 12px;
-            color: white;
-            font-weight: bold;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-
-        #auth-btn:hover { background: #664dff; transform: translateY(-2px); }
-
-        .toggle-link {
-            color: rgba(255, 255, 255, 0.6);
-            cursor: pointer;
-            font-size: 14px;
-            text-align: center;
-        }
-
-        .toggle-link:hover { color: #7d67ff; }
-        .auth-icon { text-align: center; font-size: 50px; margin-bottom: 20px; }
-        h2, p { text-align: center; color: white; margin: 5px 0; }
-    </style>
 </body>
 </html>
